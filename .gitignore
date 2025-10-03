@@ -42,3 +42,5 @@ build/
 
 ### OpenApi ###
 **/_merged_spec.yaml
+
+allure-results/*
