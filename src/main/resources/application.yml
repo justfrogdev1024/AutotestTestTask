@@ -1,0 +1,13 @@
+test:
+  api:
+    url: https://petstore.swagger.io/v2
+    username: admin
+    password: admin
+  ui:
+    url: https://www.google.com/
+    username: autotest
+    password: autotest
+  db:
+    url: jdbc:postgresql://pg-alfa.it-alnc.ru:5432/prodprofile_f_preprod
+    username: objects
+    password: dAC8F77aWu7Cd
