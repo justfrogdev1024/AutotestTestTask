@@ -9,11 +9,16 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <!-- Используем Java 22 под требование задания -->
+        <maven.compiler.source>22</maven.compiler.source>
+        <maven.compiler.target>22</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <aspectj.version>1.9.20.1</aspectj.version>
+
+        <!-- Версии для мобильного стека (Appium 10 + Selenium 4.26 совместимы, устраняют IllegalAccessError) -->
+        <selenide.version>7.4.3</selenide.version>
+        <appium.java.client.version>10.0.0</appium.java.client.version>
 
         <enableLogging>true</enableLogging>
     </properties>
@@ -102,6 +107,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
             </plugin>
 
             <plugin>
@@ -181,7 +187,7 @@
             <dependency>
                 <groupId>org.seleniumhq.selenium</groupId>
                 <artifactId>selenium-dependencies-bom</artifactId>
-                <version>4.21.0</version>
+                <version>4.35.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -348,6 +354,24 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
+        </dependency>
+        <!-- Привязка SLF4J к Log4j2 (убирает предупреждение StaticLoggerBinder) -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <version>2.23.1</version>
+        </dependency>
+        <!-- Selenide для UI/мобильных тестов -->
+        <dependency>
+            <groupId>com.codeborne</groupId>
+            <artifactId>selenide</artifactId>
+            <version>${selenide.version}</version>
+        </dependency>
+        <!-- Appium Java client для Android-тестов -->
+        <dependency>
+            <groupId>io.appium</groupId>
+            <artifactId>java-client</artifactId>
+            <version>${appium.java.client.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.annotation</groupId>
