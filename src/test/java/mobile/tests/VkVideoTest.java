@@ -9,6 +9,7 @@ import io.appium.java_client.android.nativekey.KeyEvent;
 import io.qameta.allure.*;
 import org.openqa.selenium.By;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.Assert;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import ru.justfrogdev.listeners.ApiConfigurationListener;
@@ -25,18 +26,21 @@ import static com.codeborne.selenide.Selenide.$$;
 import static org.awaitility.Awaitility.await;
 
 @Listeners({GroupIntersectionInterceptor.class})
+@ContextConfiguration(classes = StepsConfiguration.class)
 @Epic("Допустим Компания ТестерОРГ")
 @Feature("Допустим приложение VK VIDEO")
 @TmsLink("Задача в JIRA")
 @Issue("ID страницы в CF")
-@Test(priority = 1,
-        testName = "Наименование теста",
+@Test(testName = "Тест приложения VK Video",
         groups =
                 {
-                        "Группа 1",
-                        "Группа 2"
+                        "mobile",
+                        "ui"
                 }, retryAnalyzer = RetryAnalyzer.class)
 public class VkVideoTest extends BaseMobileTest {
+
+    private static SelenideElement videoCard =
+            $(By.xpath("(//android.widget.ImageView[@resource-id=\"com.vk.vkvideo:id/preview\"])[1]"));
 
     @Override
     protected String getAppPackage() {
@@ -56,59 +60,28 @@ public class VkVideoTest extends BaseMobileTest {
     @Test
     @Description("Позитивный тест")
     public void testPositive() {
-        System.out.println("Ожидание прогрузки");
-        By previewContainer = By.xpath(
-                "(//android.widget.FrameLayout[@resource-id='com.vk.vkvideo:id/content'])[1]/android.view.ViewGroup"
-        );
 
-        $(previewContainer)
-                .shouldBe(Condition.visible, Duration.ofSeconds(20));
+        boolean loaded = loadingChecker();
 
-        System.out.println("Ожидание прогрузки");
-        By videoCard = By.xpath(
-                "(//android.widget.ImageView[@resource-id=\"com.vk.vkvideo:id/preview\"])[1]"
-        );
-
-        if ($(videoCard).exists() && $(videoCard).isDisplayed()) {
-            System.out.println("Видео нажалось");
-            $(videoCard).click();
-        } else {
-            System.out.println("Видео не нажалось");
-            $$(By.xpath("//*[contains(@resource-id,'vkvideo') and (@clickable='true')]")).first().click();
-        }
-
+        Assert.assertTrue(loaded, "Видео не прогрузилось");
+        videoCard.click();
+        System.out.println("Видео нажалось");
 
         System.out.println("Проверка что видео открылось");
         $(By.xpath("//android.view.ViewGroup[@resource-id=\"com.vk.vkvideo:id/video_author_view\"]"))
                 .shouldBe(Condition.visible, Duration.ofSeconds(20));
         System.out.println("Видео успешно открылось");
 
-        System.out.println("Выключение видео");
-        driver.pressKey(new KeyEvent(AndroidKey.BACK));
-        $(By.xpath("//android.widget.ImageButton[@content-desc=\"Close\"]")).click();
+        exitVideo();
     }
 
-    @Test(priority = 1, dependsOnMethods = "testPositive")
+    @Test(dependsOnMethods = "testPositive")
     @Description("Негативный тест")
     public void testNegative() throws InterruptedException {
-        System.out.println("Выключение интернета");
-        ((HasNetworkConnection) driver)
-                .setConnection(new ConnectionStateBuilder().withWiFiDisabled().build());
+        turnOffWifi();
 
-
-        System.out.println("Ожидание прогрузки");
-        By videoCard = By.xpath(
-                "(//android.widget.ImageView[@resource-id=\"com.vk.vkvideo:id/preview\"])[1]"
-        );
-
-        if ($(videoCard).exists() && $(videoCard).isDisplayed()) {
-            System.out.println("Видео нажалось");
-            $(videoCard).click();
-        } else {
-            System.out.println("Видео не нажалось");
-            $$(By.xpath("//*[contains(@resource-id,'vkvideo') and (@clickable='true')]")).first().click();
-        }
-
+        videoCard.click();
+        System.out.println("Видео нажалось");
 
         System.out.println("Проверка что видео не грузится");
         By videoLoading = By.xpath("//android.widget.ProgressBar[@resource-id=\"com.vk.vkvideo:id/progress_view\"]");
@@ -118,17 +91,47 @@ public class VkVideoTest extends BaseMobileTest {
         System.out.println("Видео не грузится");
 
 
-        System.out.println("Выключение видео");
-        driver.pressKey(new KeyEvent(AndroidKey.BACK));
-        $(By.xpath("//android.widget.ImageButton[@content-desc=\"Close\"]"))
-                .shouldBe(Condition.visible, Duration.ofSeconds(5))
-                .click();
+        exitVideo();
 
+        turnOnWifi();
+    }
+
+
+    @Step("Ожидание загрузок")
+    private boolean loadingChecker() {
+        System.out.println("Ожидание прогрузки");
+        By previewContainer = By.xpath(
+                "(//android.widget.FrameLayout[@resource-id='com.vk.vkvideo:id/content'])[1]/android.view.ViewGroup"
+        );
+        $(previewContainer)
+                .shouldBe(Condition.visible, Duration.ofSeconds(20));
+
+        return videoCard.exists() && videoCard.isDisplayed();
+    }
+
+    @Step("Выключение wifi")
+    private void turnOffWifi() {
+        System.out.println("Выключение интернета");
+        ((HasNetworkConnection) driver)
+                .setConnection(new ConnectionStateBuilder().withWiFiDisabled().build());
+    }
+
+    @Step("Включение wifi")
+    private void turnOnWifi() {
         System.out.println("Включение интернета");
         ((HasNetworkConnection) driver)
                 .setConnection(new ConnectionStateBuilder()
                         .withWiFiEnabled()
                         .withDataEnabled()
                         .build());
+    }
+
+    @Step("Выключение видео")
+    private void exitVideo() {
+        System.out.println("Выключение видео");
+        driver.pressKey(new KeyEvent(AndroidKey.BACK));
+        $(By.xpath("//android.widget.ImageButton[@content-desc=\"Close\"]"))
+                .shouldBe(Condition.visible, Duration.ofSeconds(5))
+                .click();
     }
 }

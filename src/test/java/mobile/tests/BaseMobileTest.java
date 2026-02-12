@@ -114,7 +114,10 @@ public abstract class BaseMobileTest {
     @AfterMethod(alwaysRun = true)
     public void tearDownAndroidDriver() {
         if (driver != null) {
-            driver.terminateApp("com.vk.vkvideo");
+            String currentPackage = driver.getCurrentPackage();
+            if (currentPackage != null && !isSystemPackage(currentPackage)) {
+                driver.terminateApp(currentPackage);
+            }
             ((HasNetworkConnection) driver)
                     .setConnection(new ConnectionStateBuilder()
                             .withWiFiEnabled()
@@ -123,6 +126,10 @@ public abstract class BaseMobileTest {
             driver.quit();
 
         }
+    }
+
+    private boolean isSystemPackage(String packageName) {
+        return packageName.startsWith("com.android.") || packageName.contains("launcher") || packageName.equals("com.google.android.apps.nexuslauncher");
     }
 }
 

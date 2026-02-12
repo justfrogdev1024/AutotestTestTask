@@ -18,12 +18,10 @@ import ru.justfrogdev.utils.StepsConfiguration;
 @Feature("Допустим страница главная")
 @TmsLink("Задача в JIRA")
 @Issue("ID страницы в CF")
-@Test(priority = 1,
-        testName = "Наименование теста",
+@Test(testName = "Наименование теста",
         groups =
                 {
-                        "Группа 1",
-                        "Группа 2"
+                        "ui"
                 }, retryAnalyzer = RetryAnalyzer.class)
 public class ExampleTests extends BaseUiTests {
 
