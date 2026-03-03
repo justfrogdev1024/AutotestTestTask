@@ -19,7 +19,7 @@ public class DotEnvInitializer {
     private static final Logger log = LogManager.getLogger(DotEnvInitializer.class);
 
     static {
-        загрузитьEnvФайл();
+        loadEnvFile();
     }
 
     /**
