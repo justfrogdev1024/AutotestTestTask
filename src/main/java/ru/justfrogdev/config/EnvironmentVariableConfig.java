@@ -1,19 +1,16 @@
 package ru.justfrogdev.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-
 /**
- * Загружает переменные окружения в Spring конфигурацию.
+ * Утилитный класс для работы с переменными окружения.
  * Поддерживает как системные переменные (System.getenv),
- * так и значения из application.yml с подставновкой переменных.
+ * так и значения из application.yml с подставновкой переменных через ${...}.
  *
  * Использование:
  * - Установить env-переменные: TEST_API_URL=..., TEST_DB_PASSWORD=..., и т.д.
  * - Или скопировать .env.example в .env и запустить с dotenv или IDE интеграцией
+ * - Или использовать дефолтные значения из application.yml
  */
-@Configuration
-public class EnvironmentVariableConfig {
+public final class EnvironmentVariableConfig {
 
     /**
      * Получить значение переменной окружения с резервным значением по умолчанию
@@ -24,5 +21,9 @@ public class EnvironmentVariableConfig {
     public static String getEnvOrDefault(String envVar, String defaultValue) {
         String value = System.getenv(envVar);
         return value != null && !value.isEmpty() ? value : defaultValue;
+    }
+
+    private EnvironmentVariableConfig() {
+        // Утилитный класс, не должен быть инстанцирован
     }
 }
