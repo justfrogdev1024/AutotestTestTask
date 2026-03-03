@@ -8,8 +8,6 @@ test:
     username: ${TEST_UI_USERNAME:autotest}
     password: ${TEST_UI_PASSWORD:autotest}
   db:
-    # P6Spy драйвер логирует все SQL запросы (см. spy.properties)
-    # Формат: jdbc:p6spy:postgresql://host:port/database
     url: ${TEST_DB_URL:jdbc:p6spy:postgresql://localhost:5432/testdb}
     username: ${TEST_DB_USERNAME:testuser}
     password: ${TEST_DB_PASSWORD:testpassword}
