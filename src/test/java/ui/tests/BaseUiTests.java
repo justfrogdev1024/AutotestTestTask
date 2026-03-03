@@ -40,7 +40,6 @@ public abstract class BaseUiTests extends AbstractTestNGSpringContextTests {
         chromeOptions.addArguments("--start-maximized");
         chromeOptions.addArguments("--remote-allow-origins=*");
         driver = new ChromeDriver(chromeOptions);
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
     }
 
     @AfterMethod(alwaysRun = true)

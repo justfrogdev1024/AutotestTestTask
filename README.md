@@ -254,6 +254,97 @@ TEST_DB_URL=jdbc:postgresql://localhost:5432/mydb
 executionThreshold=100
 ```
 
+## ⏱️ WebDriver Wait Strategy
+
+Проект использует **только Explicit Waits** для максимальной стабильности и скорости тестов.
+
+### Почему не Implicit Wait?
+
+❌ **Не используется:**
+```java
+driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10)); // УДАЛЕНО
+```
+
+**Проблемы Implicit Wait:**
+- Конфликтует с Explicit Wait (непредсказуемое время ожидания)
+- Замедляет тесты (ждёт даже когда не нужно)
+- Проверяет только наличие в DOM (не visibility/clickability)
+
+### UIWaitHelper
+
+Все ожидания централизованы в `UIWaitHelper`:
+
+```java
+UIWaitHelper wait = new UIWaitHelper(driver);
+
+// Ждать пока элемент станет видимым
+wait.waitForVisible(By.id("button"));
+
+// Ждать пока элемент станет кликабельным
+wait.waitForClickable(By.id("button"));
+
+// Ждать появления текста
+wait.waitForTextToBe(By.id("status"), "Success");
+
+// Ждать исчезновения элемента
+wait.waitForInvisible(By.id("loader"));
+```
+
+### Использование в Page Object
+
+```java
+public class LoginPage {
+    private final WebDriver driver;
+    private final UIWaitHelper wait;
+    
+    private final By usernameField = By.id("username");
+    private final By loginButton = By.id("login-btn");
+    
+    public LoginPage(WebDriver driver) {
+        this.driver = driver;
+        this.wait = new UIWaitHelper(driver);
+    }
+    
+    public void login(String username) {
+        // Явно ждём, пока поле станет видимым
+        wait.waitForVisible(usernameField).sendKeys(username);
+        
+        // Явно ждём, пока кнопка станет кликабельной
+        wait.waitForClickable(loginButton).click();
+    }
+}
+```
+
+### AbstractPage
+
+Для наследников `AbstractPage` доступны готовые методы:
+
+```java
+public class MyPage extends AbstractPage {
+    public void clickSubmit() {
+        elementAwait(By.id("submit")); // waitForVisible + waitForClickable
+        click(By.id("submit"));
+    }
+}
+```
+
+**Доступные методы:**
+- `elementAwait(By)` — ждать visibility + clickability
+- `elementVisibilityAwait(By)` — только visibility
+- `noElementAwait(By)` — ждать исчезновения
+
+### Best Practices
+
+✅ **Правильно:**
+```java
+wait.waitForClickable(loginButton).click();
+```
+
+❌ **Неправильно:**
+```java
+driver.findElement(loginButton).click(); // Может упасть, если элемент ещё не загружен
+```
+
 ## 🐛 Известные ограничения
 
 - Пароли в логах маскируются по ключевому слову "password" в имени переменной

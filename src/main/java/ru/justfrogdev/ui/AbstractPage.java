@@ -4,6 +4,7 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import ru.justfrogdev.ui.utils.UIWaitHelper;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -14,24 +15,27 @@ import java.util.Locale;
 public abstract class AbstractPage {
 
     protected final WebDriver driver;
+    protected final UIWaitHelper wait;
+    @Deprecated
     protected final WebDriverWait driverWait;
 
     protected AbstractPage(WebDriver driver) {
         this.driver = driver;
+        this.wait = new UIWaitHelper(driver);
         this.driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     protected void elementAwait(By by) {
-        driverWait.until(ExpectedConditions.visibilityOfElementLocated(by));
-        driverWait.until(ExpectedConditions.elementToBeClickable(by));
+        wait.waitForVisible(by);
+        wait.waitForClickable(by);
     }
 
     protected void elementVisibilityAwait(By by) {
-        driverWait.until(ExpectedConditions.visibilityOfElementLocated(by));
+        wait.waitForVisible(by);
     }
 
     protected void noElementAwait(By by) {
-        driverWait.until(ExpectedConditions.invisibilityOfElementLocated(by));
+        wait.waitForInvisible(by);
     }
 
     protected void click(By by) {
