@@ -1,13 +1,13 @@
 test:
   api:
-    url: https://petstore.swagger.io/v2
-    username: admin
-    password: admin
+    url: ${TEST_API_URL:https://petstore.swagger.io/v2}
+    username: ${TEST_API_USERNAME:admin}
+    password: ${TEST_API_PASSWORD:admin}
   ui:
-    url: https://www.google.com/
-    username: autotest
-    password: autotest
+    url: ${TEST_UI_URL:https://www.google.com/}
+    username: ${TEST_UI_USERNAME:autotest}
+    password: ${TEST_UI_PASSWORD:autotest}
   db:
-    url: jdbc:postgresql://pg-alfa.it-alnc.ru:5432/prodprofile_f_preprod
-    username: objects
-    password: dAC8F77aWu7Cd
+    url: ${TEST_DB_URL:jdbc:postgresql://localhost:5432/testdb}
+    username: ${TEST_DB_USERNAME:testuser}
+    password: ${TEST_DB_PASSWORD:testpassword}

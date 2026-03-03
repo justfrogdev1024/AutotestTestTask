@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import ru.justfrogdev.utils.models.EnvironmentConfig;
+import ru.justfrogdev.config.DotEnvInitializer;
 
 import java.io.IOException;
 import java.util.Map;
@@ -15,6 +16,17 @@ public final class Singleton {
     private static EnvironmentConfig environmentConfig;
 
     private Singleton() {
+    }
+
+    // Инициализируем .env при загрузке класса
+    static {
+        // Ссылка на класс гарантирует его загрузку
+        try {
+            Class.forName(DotEnvInitializer.class.getName());
+        } catch (ClassNotFoundException e) {
+            // Не должно быть, но на всякий случай обработаем
+            throw new RuntimeException("Failed to initialize DotEnvInitializer", e);
+        }
     }
 
     public static synchronized ObjectMapper getJsonObjectMapper() {
