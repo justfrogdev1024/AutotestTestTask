@@ -55,6 +55,11 @@ mvn clean test -DenableLogging=false
 
 # Тесты + Allure отчёт одной командой
 mvn clean test -DrequiredGroups=ui allure:report
+
+# Ускорение UI-тестов
+mvn clean test -DrequiredGroups=ui                           # Headless по умолчанию (быстро)
+mvn clean test -DrequiredGroups=ui -Dheaded=true             # С отображением браузера (дебаг)
+mvn clean test -DrequiredGroups=ui -DdisableImages=true      # Без картинок (ещё быстрее)
 ```
 
 ### Шаг 4: Allure отчёты
@@ -477,6 +482,103 @@ mvn clean test -DthreadCount=1
 ```
 
 Или закомментировать `<parallel>` в `pom.xml`.
+
+## ⚡ Оптимизация скорости UI-тестов
+
+### Headless режим (по умолчанию)
+
+UI-тесты запускаются в **headless режиме** для максимальной скорости:
+
+```bash
+# Headless (быстро, для CI/CD)
+mvn clean test -DrequiredGroups=ui
+
+# С отображением браузера (медленнее, для дебага)
+mvn clean test -DrequiredGroups=ui -Dheaded=true
+```
+
+**Ускорение:** 20-40% быстрее
+
+### Отключение загрузки изображений
+
+Для тестов, которые не проверяют изображения:
+
+```bash
+mvn clean test -DrequiredGroups=ui -DdisableImages=true
+```
+
+**Ускорение:** 10-30% быстрее (зависит от количества медиа на страницах)
+
+**⚠️ Предупреждение:** используйте только если тесты не проверяют отображение картинок.
+
+### Другие оптимизации
+
+**1. Параллелизм (уже включён):**
+- 3 потока (classes)
+- 2 JVM форка
+- Линейное ускорение до 3x
+
+**2. Explicit Wait вместо Implicit (уже реализовано):**
+- UIWaitHelper с polling 50ms
+- Нет конфликтов ожиданий
+- Ускорение ~20%
+
+**3. Группировка тестов по скорости:**
+```java
+@Test(groups = {"ui", "fast"})  // < 10 секунд
+@Test(groups = {"ui", "slow"})  // > 30 секунд
+```
+
+Запуск быстрых тестов:
+```bash
+mvn clean test -DrequiredGroups=ui,fast
+```
+
+**4. Тестовые данные через API (вместо UI):**
+```java
+// ❌ Медленно: создание через UI
+loginPage.fillForm(user).submit();
+createAccountPage.fillAllFields().submit();
+
+// ✅ Быстро: создание через API
+User user = apiClient.createUser(email, password);
+loginPage.loginAs(user);
+```
+
+**5. Переиспользование состояния (продвинуто):**
+```java
+// Сохранить cookies после логина
+cookies = driver.manage().getCookies();
+
+// Восстановить сессию в следующем тесте
+cookies.forEach(cookie -> driver.manage().addCookie(cookie));
+driver.navigate().refresh();
+```
+
+**⚠️ Риск:** тесты становятся зависимыми друг от друга.
+
+### Измерение скорости
+
+Allure показывает время каждого теста:
+
+```bash
+mvn allure:serve
+```
+
+**Рекомендации:**
+- **< 10 сек** — отлично (группа `fast`)
+- **10-30 сек** — нормально
+- **> 30 сек** — медленно (группа `slow`, кандидат на оптимизацию)
+
+### Комбинированный запуск
+
+```bash
+# Максимальная скорость (headless + без картинок + параллелизм)
+mvn clean test -DrequiredGroups=ui,fast -DdisableImages=true -DenableLogging=false
+
+# Дебаг (с браузером + логи)
+mvn clean test -DrequiredGroups=ui -Dheaded=true -DthreadCount=1
+```
 
 ## 🐛 Известные ограничения
 
