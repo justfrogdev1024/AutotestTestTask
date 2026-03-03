@@ -380,6 +380,15 @@ mvn clean test -DrequiredGroups=mobile,ui
 
 # Smoke-тесты для быстрой проверки
 mvn clean test -DrequiredGroups=smoke
+
+# Исключение групп: все UI-тесты, КРОМЕ мобильных
+mvn clean test -DrequiredGroups=ui -DexcludeGroups=mobile
+
+# Исключение нескольких групп (OR)
+mvn clean test -DrequiredGroups=ui -DexcludeGroups=mobile,slow
+
+# Только включение без требуемых групп (запустить всё, кроме mobile)
+mvn clean test -DexcludeGroups=mobile
 ```
 
 ### Как добавить группу к тесту
@@ -398,10 +407,41 @@ public void testComplexScenario() {
 
 ### GroupIntersectionInterceptor
 
-Проект использует кастомный интерсептор, который фильтрует тесты по **пересечению** групп:
+Проект использует кастомный интерсептор с поддержкой **включения** и **исключения** групп:
 
-- `-DrequiredGroups=ui` → запустит тесты, содержащие группу "ui"
-- `-DrequiredGroups=mobile,ui` → запустит тесты, содержащие **И** "mobile", **И** "ui"
+#### Логика фильтрации
+
+**requiredGroups (включение):**
+- `-DrequiredGroups=ui` → тесты, содержащие группу "ui"
+- `-DrequiredGroups=mobile,ui` → тесты, содержащие **И** "mobile", **И** "ui" (пересечение, AND)
+
+**excludeGroups (исключение):**
+- `-DexcludeGroups=mobile` → тесты, **НЕ** содержащие группу "mobile"
+- `-DexcludeGroups=mobile,slow` → тесты, **НЕ** содержащие **ни** "mobile", **ни** "slow" (OR)
+
+**Комбинация:**
+```bash
+-DrequiredGroups=ui -DexcludeGroups=mobile
+```
+→ Тесты с группой "ui", но **без** группы "mobile"
+
+#### Примеры работы
+
+Тесты:
+```java
+@Test(groups = {"ui"})           // Test1
+@Test(groups = {"ui", "mobile"}) // Test2
+@Test(groups = {"ui", "slow"})   // Test3
+```
+
+Команды:
+```bash
+-DrequiredGroups=ui                          → Test1, Test2, Test3
+-DrequiredGroups=ui -DexcludeGroups=mobile   → Test1, Test3
+-DrequiredGroups=ui -DexcludeGroups=slow     → Test1, Test2
+-DexcludeGroups=mobile                       → Test1, Test3
+-DrequiredGroups=mobile,ui                   → Test2
+```
 
 ## ⚡ Параллелизм тестов
 
