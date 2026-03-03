@@ -25,7 +25,7 @@ public final class Singleton {
             Class.forName(DotEnvInitializer.class.getName());
         } catch (ClassNotFoundException e) {
             // Не должно быть, но на всякий случай обработаем
-            throw new RuntimeException("Failed to initialize DotEnvInitializer", e);
+            throw new RuntimeException("Ошибка инициализации DotEnvInitializer", e);
         }
     }
 
@@ -53,13 +53,13 @@ public final class Singleton {
                         }
                 );
             } catch (IOException e) {
-                throw new IllegalStateException("Failed to read 'application.yml'", e);
+                throw new IllegalStateException("Ошибка при чтении 'application.yml'", e);
             }
 
             String environmentName = System.getProperty("environment", "test");
             if (!environmentConfigByName.containsKey(environmentName)) {
                 String message = String.format(
-                        "Failed to read '%s' configuration, please application.yml",
+                        "Ошибка при чтении конфигурации '%s', проверьте application.yml",
                         environmentName);
                 throw new IllegalStateException(message);
             }

@@ -19,9 +19,13 @@ public class DotEnvInitializer {
     private static final Logger log = LogManager.getLogger(DotEnvInitializer.class);
 
     static {
-        loadEnvFile();
+        загрузитьEnvФайл();
     }
 
+    /**
+     * Загружает переменные окружения из .env файла.
+     * Приоритет: системные env > .env файл > дефолты в application.yml
+     */
     private static void loadEnvFile() {
         try {
             Dotenv dotenv = Dotenv.configure()
@@ -34,22 +38,24 @@ public class DotEnvInitializer {
 
                 // Устанавливаем переменную окружения только если она ещё не установлена
                 if (System.getenv(key) == null) {
-                    // Используем reflection для установки env-переменных
-                    // (System.setenv недоступен, но dotenv загружает в System.getenv автоматически)
-                    log.debug("Loaded from .env: {}={}", key, maskSensitiveValue(key, value));
+                    // dotenv загружает значения в System.getenv автоматически
+                    log.debug("Загружено из .env: {}={}", key, maskSensitiveValue(key, value));
                 }
             });
 
-            log.info(".env file loaded successfully (or doesn't exist)");
+            log.info("Файл .env загружен успешно (или не существует)");
         } catch (DotenvException e) {
-            log.debug("No .env file found, using system environment variables only");
+            log.debug("Файл .env не найден, используются системные переменные окружения");
         } catch (Exception e) {
-            log.warn("Failed to load .env file: {}", e.getMessage());
+            log.warn("Ошибка при загрузке .env файла: {}", e.getMessage());
         }
     }
 
     /**
-     * Маскирует чувствительные значения в логах
+     * Маскирует чувствительные значения в логах (пароли, токены, ключи доступа)
+     * @param key название переменной окружения
+     * @param value значение переменной
+     * @return замаскированное значение для логирования
      */
     private static String maskSensitiveValue(String key, String value) {
         if (key.toLowerCase().contains("password")
