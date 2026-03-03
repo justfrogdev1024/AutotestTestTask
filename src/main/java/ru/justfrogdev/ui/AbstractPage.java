@@ -89,26 +89,14 @@ public abstract class AbstractPage {
     }
 
     protected void clickCheckbox(By labelBy, By targetBy) {
-        elementAwait(labelBy);
-
-        if (driver.findElements(targetBy).isEmpty()) {
-            int attempts = 0;
-            final int maxAttempts = 4;
-            while (attempts < maxAttempts) {
-                try {
-                    driver.findElement(labelBy).click();
-                    attempts++;
-                    new WebDriverWait(driver, Duration.ofMillis(200)).until(
-                            ExpectedConditions.visibilityOfElementLocated(targetBy)
-                    );
-                    return;
-
-                } catch (NoSuchElementException | TimeoutException ignored) {
-                }
-            }
-
-            throw new RuntimeException("У checkbox'а " + labelBy + " нет состояния " + targetBy);
+        // Проверяем текущее состояние
+        if (!driver.findElements(targetBy).isEmpty() 
+            && driver.findElement(targetBy).isDisplayed()) {
+            return; // Уже в нужном состоянии
         }
+
+        // Используем оптимизированный метод из UIWaitHelper
+        wait.clickUntilStateChanges(labelBy, targetBy, 3);
     }
 
     protected void clickCheckbox(By by, boolean state) {

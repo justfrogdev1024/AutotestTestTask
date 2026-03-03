@@ -40,4 +40,25 @@ public class UIWaitHelper {
     public WebElement waitForPresent(By locator) {
         return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
     }
+
+    public void clickUntilStateChanges(By clickTarget, By expectedState, int maxAttempts) {
+        WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofMillis(500));
+        shortWait.pollingEvery(Duration.ofMillis(50));
+        
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            waitForClickable(clickTarget).click();
+            
+            try {
+                shortWait.until(ExpectedConditions.visibilityOfElementLocated(expectedState));
+                return;
+            } catch (TimeoutException e) {
+                if (attempt >= maxAttempts) {
+                    throw new RuntimeException(
+                        String.format("Элемент %s не достиг состояния %s за %d попыток",
+                                    clickTarget, expectedState, maxAttempts)
+                    );
+                }
+            }
+        }
+    }
 }
