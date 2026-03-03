@@ -30,8 +30,17 @@ public abstract class AbstractPage {
         wait.waitForClickable(by);
     }
 
+    protected void elementAwait(By by, Duration customTimeout) {
+        wait.waitForVisible(by, customTimeout);
+        wait.waitForClickable(by, customTimeout);
+    }
+
     protected void elementVisibilityAwait(By by) {
         wait.waitForVisible(by);
+    }
+
+    protected void elementVisibilityAwait(By by, Duration customTimeout) {
+        wait.waitForVisible(by, customTimeout);
     }
 
     protected void noElementAwait(By by) {

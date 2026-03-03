@@ -42,6 +42,16 @@ public class UIWaitHelper {
         return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
     }
 
+    public WebElement waitForVisible(By locator, Duration customTimeout) {
+        WebDriverWait customWait = new WebDriverWait(driver, customTimeout);
+        return customWait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+    }
+
+    public WebElement waitForClickable(By locator, Duration customTimeout) {
+        WebDriverWait customWait = new WebDriverWait(driver, customTimeout);
+        return customWait.until(ExpectedConditions.elementToBeClickable(locator));
+    }
+
     public void clickUntilStateChanges(By clickTarget, By expectedState, int maxAttempts) {
         WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofMillis(500));
         shortWait.pollingEvery(Duration.ofMillis(50));
