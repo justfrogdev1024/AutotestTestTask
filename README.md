@@ -40,30 +40,39 @@ TEST_DB_PASSWORD=db_pass
 
 ```bash
 # Все тесты
-mvn test
+mvn clean test
 
-# Только UI-тесты
-mvn test -DsuiteXmlFile=src/test/resources/testng-ui.xml
+# Фильтрация по группам TestNG
+mvn clean test -DrequiredGroups=ui           # Только UI-тесты
+mvn clean test -DrequiredGroups=mobile       # Только мобильные тесты
+mvn clean test -DrequiredGroups=mobile,ui    # Тесты с обеими группами
 
-# Только API-тесты
-mvn test -DsuiteXmlFile=src/test/resources/testng-api.xml
+# Выбор окружения
+mvn clean test -Denvironment=production -DrequiredGroups=smoke
 
-# С конкретной окружением
-mvn test -Denvironment=production
+# Отключение логирования
+mvn clean test -DenableLogging=false
 
-# С отключением логирования
-mvn test -DenableLogging=false
+# Тесты + Allure отчёт одной командой
+mvn clean test -DrequiredGroups=ui allure:report
 ```
 
-### Шаг 4: Просмотр отчётов
+### Шаг 4: Allure отчёты
 
 ```bash
-# Сгенерировать HTML-отчет Allure
+# Генерация HTML отчёта
 mvn allure:report
 
-# Открыть в браузере
-allure open target/allure-report
+# Запуск локального веб-сервера с отчётом (автоматически откроется в браузере)
+mvn allure:serve
+
+# Очистка старых результатов
+mvn allure:clean
 ```
+
+**Расположение файлов:**
+- Результаты тестов: `target/allure-results/`
+- HTML отчёт: `target/allure-report/`
 
 ## 📋 Структура проекта
 
@@ -344,6 +353,90 @@ wait.waitForClickable(loginButton).click();
 ```java
 driver.findElement(loginButton).click(); // Может упасть, если элемент ещё не загружен
 ```
+
+## 🏷️ TestNG Группы и фильтрация
+
+Тесты организованы по группам для удобной фильтрации:
+
+### Доступные группы
+
+- **ui** — UI-тесты (Selenium WebDriver)
+- **mobile** — мобильные тесты (Appium)
+- **api** — API-тесты (REST Assured) _(если добавите)_
+- **smoke** — быстрые smoke-тесты _(если добавите)_
+- **regression** — полная регрессия _(если добавите)_
+
+### Примеры команд
+
+```bash
+# Запустить все UI-тесты
+mvn clean test -DrequiredGroups=ui
+
+# Запустить только мобильные тесты
+mvn clean test -DrequiredGroups=mobile
+
+# Запустить тесты с несколькими группами (AND)
+mvn clean test -DrequiredGroups=mobile,ui
+
+# Smoke-тесты для быстрой проверки
+mvn clean test -DrequiredGroups=smoke
+```
+
+### Как добавить группу к тесту
+
+```java
+@Test(groups = {"ui", "smoke"})
+public void testLoginFlow() {
+    // Быстрый тест логина
+}
+
+@Test(groups = {"ui", "regression"})
+public void testComplexScenario() {
+    // Полный сценарий
+}
+```
+
+### GroupIntersectionInterceptor
+
+Проект использует кастомный интерсептор, который фильтрует тесты по **пересечению** групп:
+
+- `-DrequiredGroups=ui` → запустит тесты, содержащие группу "ui"
+- `-DrequiredGroups=mobile,ui` → запустит тесты, содержащие **И** "mobile", **И** "ui"
+
+## ⚡ Параллелизм тестов
+
+### Текущие настройки
+
+```xml
+<parallel>classes</parallel>       <!-- Параллелизм на уровне классов -->
+<threadCount>3</threadCount>       <!-- 3 потока -->
+<forkCount>2</forkCount>           <!-- 2 JVM процесса -->
+```
+
+**Что это значит:**
+- Каждый тестовый класс запускается в отдельном потоке
+- Методы внутри класса выполняются последовательно
+- Максимум 3 класса одновременно
+
+### Изоляция данных
+
+✅ **WebDriver изолирован** — каждый тест создаёт свой экземпляр в `@BeforeMethod`
+
+⚠️ **БД/API данные** — используйте уникальные значения:
+```java
+String email = "user-" + UUID.randomUUID() + "@test.com";
+User user = createUser(email, "password123");
+```
+
+### Отключение параллелизма
+
+Если тесты нестабильны при параллельном запуске:
+
+```bash
+mvn clean test -DthreadCount=1
+```
+
+Или закомментировать `<parallel>` в `pom.xml`.
 
 ## 🐛 Известные ограничения
 
