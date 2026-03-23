@@ -10,12 +10,19 @@ import io.restassured.config.ObjectMapperConfig;
 import org.testng.*;
 
 import java.time.OffsetDateTime;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.restassured.RestAssured.given;
 
 public class ApiConfigurationListener implements IExecutionListener, ITestListener, IInvokedMethodListener {
 
+    private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
+
     private static void init() {
+        if (INITIALIZED.getAndSet(true)) {
+            return;
+        }
+
         RestAssured.config = RestAssured.config().objectMapperConfig(
                 new ObjectMapperConfig().jackson2ObjectMapperFactory(
                         (type, charset) -> JsonMapper.builder()
@@ -35,28 +42,16 @@ public class ApiConfigurationListener implements IExecutionListener, ITestListen
     }
 
     @Override
-    public void onTestSuccess(ITestResult result) {
-        RestAssured.reset();
-        init();
-    }
+    public void onTestSuccess(ITestResult result) {}
 
     @Override
-    public void onTestFailure(ITestResult result) {
-        RestAssured.reset();
-        init();
-    }
+    public void onTestFailure(ITestResult result) {}
 
     @Override
-    public void onTestFailedButWithinSuccessPercentage(ITestResult result) {
-        RestAssured.reset();
-        init();
-    }
+    public void onTestFailedButWithinSuccessPercentage(ITestResult result) {}
 
     @Override
-    public void onTestFailedWithTimeout(ITestResult result) {
-        RestAssured.reset();
-        init();
-    }
+    public void onTestFailedWithTimeout(ITestResult result) {}
 
     @Override
     public void beforeInvocation(IInvokedMethod method, ITestResult testResult, ITestContext context) {

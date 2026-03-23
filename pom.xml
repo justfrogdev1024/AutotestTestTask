@@ -20,6 +20,8 @@
         <selenide.version>7.4.3</selenide.version>
         <appium.java.client.version>10.0.0</appium.java.client.version>
 
+        <testFailureIgnore>false</testFailureIgnore>
+
         <enableLogging>true</enableLogging>
     </properties>
 
