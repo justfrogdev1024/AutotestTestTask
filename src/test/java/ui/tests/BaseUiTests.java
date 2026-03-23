@@ -18,6 +18,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class BaseUiTests extends AbstractTestNGSpringContextTests {
@@ -32,15 +34,37 @@ public abstract class BaseUiTests extends AbstractTestNGSpringContextTests {
     public void startChromeDriver() {
         ChromeOptions chromeOptions = new ChromeOptions();
         WebDriverManager.chromedriver().setup();
+        
+        // Включаем headless если не установлена переменная HEADED=true
+        boolean isHeaded = Boolean.parseBoolean(System.getProperty("headed", "false"));
+        if (!isHeaded) {
+            chromeOptions.addArguments("--headless=new");  // Новый headless режим Chrome
+        }
+        
         chromeOptions.addArguments("--no-sandbox");
+        chromeOptions.addArguments("--disable-dev-shm-usage");  // Стабильность в Docker/CI
         chromeOptions.addArguments("--window-size=1920,1080");
         chromeOptions.addArguments("--incognito");
-//        chromeOptions.addArguments("--headless");
         chromeOptions.setExperimentalOption("w3c", true);
-        chromeOptions.addArguments("--start-maximized");
         chromeOptions.addArguments("--remote-allow-origins=*");
+        
+        // Ускорение: отключаем ненужные фичи
+        chromeOptions.addArguments("--disable-gpu");
+        chromeOptions.addArguments("--disable-extensions");
+        chromeOptions.addArguments("--disable-logging");
+        chromeOptions.addArguments("--log-level=3");  // Минимум логов
+        
+        // Опционально: отключение картинок для максимальной скорости
+        // Включать только если тесты не проверяют изображения
+        boolean disableImages = Boolean.parseBoolean(System.getProperty("disableImages", "false"));
+        if (disableImages) {
+            Map<String, Object> prefs = new HashMap<>();
+            prefs.put("profile.managed_default_content_settings.images", 2);  // 2 = блокировать
+            chromeOptions.setExperimentalOption("prefs", prefs);
+            chromeOptions.addArguments("--blink-settings=imagesEnabled=false");
+        }
+        
         driver = new ChromeDriver(chromeOptions);
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
     }
 
     @AfterMethod(alwaysRun = true)

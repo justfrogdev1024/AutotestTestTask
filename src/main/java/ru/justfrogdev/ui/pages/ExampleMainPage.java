@@ -6,11 +6,8 @@ import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.LoadableComponent;
-import org.openqa.selenium.support.ui.WebDriverWait;
-
-import java.time.Duration;
+import ru.justfrogdev.ui.utils.UIWaitHelper;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -21,11 +18,13 @@ public class ExampleMainPage extends LoadableComponent<ExampleMainPage> {
 
     private static final Logger log = LogManager.getLogger(ExampleMainPage.class);
     private final WebDriver driver;
+    private final UIWaitHelper wait;
     private final String url;
 
     public ExampleMainPage(WebDriver driver, String url) {
         this.driver = driver;
         this.url = url;
+        this.wait = new UIWaitHelper(driver);
         log.info("ExampleMainPage: {}", "ExampleMainPage");
         PageFactory.initElements(driver, this);
     }
@@ -39,9 +38,7 @@ public class ExampleMainPage extends LoadableComponent<ExampleMainPage> {
     @Step("Открытие SignIn страницы")
     protected void load() {
         driver.get(url);
-        new WebDriverWait(driver, Duration.ofSeconds(20)).until(
-                ExpectedConditions.visibilityOfElementLocated(button("Картинки"))
-        );
+        wait.waitForVisible(button("Картинки"));
     }
 
     @Override

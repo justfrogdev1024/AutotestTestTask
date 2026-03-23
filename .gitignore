@@ -44,3 +44,6 @@ build/
 **/_merged_spec.yaml
 
 allure-results/*
+
+# Do not commit secrets
+.env

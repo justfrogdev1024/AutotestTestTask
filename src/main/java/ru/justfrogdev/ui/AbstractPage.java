@@ -4,6 +4,7 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import ru.justfrogdev.ui.utils.UIWaitHelper;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -14,24 +15,36 @@ import java.util.Locale;
 public abstract class AbstractPage {
 
     protected final WebDriver driver;
+    protected final UIWaitHelper wait;
+    @Deprecated
     protected final WebDriverWait driverWait;
 
     protected AbstractPage(WebDriver driver) {
         this.driver = driver;
+        this.wait = new UIWaitHelper(driver);
         this.driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     protected void elementAwait(By by) {
-        driverWait.until(ExpectedConditions.visibilityOfElementLocated(by));
-        driverWait.until(ExpectedConditions.elementToBeClickable(by));
+        wait.waitForVisible(by);
+        wait.waitForClickable(by);
+    }
+
+    protected void elementAwait(By by, Duration customTimeout) {
+        wait.waitForVisible(by, customTimeout);
+        wait.waitForClickable(by, customTimeout);
     }
 
     protected void elementVisibilityAwait(By by) {
-        driverWait.until(ExpectedConditions.visibilityOfElementLocated(by));
+        wait.waitForVisible(by);
+    }
+
+    protected void elementVisibilityAwait(By by, Duration customTimeout) {
+        wait.waitForVisible(by, customTimeout);
     }
 
     protected void noElementAwait(By by) {
-        driverWait.until(ExpectedConditions.invisibilityOfElementLocated(by));
+        wait.waitForInvisible(by);
     }
 
     protected void click(By by) {
@@ -85,26 +98,14 @@ public abstract class AbstractPage {
     }
 
     protected void clickCheckbox(By labelBy, By targetBy) {
-        elementAwait(labelBy);
-
-        if (driver.findElements(targetBy).isEmpty()) {
-            int attempts = 0;
-            final int maxAttempts = 4;
-            while (attempts < maxAttempts) {
-                try {
-                    driver.findElement(labelBy).click();
-                    attempts++;
-                    new WebDriverWait(driver, Duration.ofMillis(200)).until(
-                            ExpectedConditions.visibilityOfElementLocated(targetBy)
-                    );
-                    return;
-
-                } catch (NoSuchElementException | TimeoutException ignored) {
-                }
-            }
-
-            throw new RuntimeException("У checkbox'а " + labelBy + " нет состояния " + targetBy);
+        // Проверяем текущее состояние
+        if (!driver.findElements(targetBy).isEmpty() 
+            && driver.findElement(targetBy).isDisplayed()) {
+            return; // Уже в нужном состоянии
         }
+
+        // Используем оптимизированный метод из UIWaitHelper
+        wait.clickUntilStateChanges(labelBy, targetBy, 3);
     }
 
     protected void clickCheckbox(By by, boolean state) {

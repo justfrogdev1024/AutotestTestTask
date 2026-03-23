@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import ru.justfrogdev.utils.models.EnvironmentConfig;
+import ru.justfrogdev.config.DotEnvInitializer;
 
 import java.io.IOException;
 import java.util.Map;
@@ -15,6 +16,17 @@ public final class Singleton {
     private static EnvironmentConfig environmentConfig;
 
     private Singleton() {
+    }
+
+    // Инициализируем .env при загрузке класса
+    static {
+        // Ссылка на класс гарантирует его загрузку
+        try {
+            Class.forName(DotEnvInitializer.class.getName());
+        } catch (ClassNotFoundException e) {
+            // Не должно быть, но на всякий случай обработаем
+            throw new RuntimeException("Ошибка инициализации DotEnvInitializer", e);
+        }
     }
 
     public static synchronized ObjectMapper getJsonObjectMapper() {
@@ -41,13 +53,13 @@ public final class Singleton {
                         }
                 );
             } catch (IOException e) {
-                throw new IllegalStateException("Failed to read 'application.yml'", e);
+                throw new IllegalStateException("Ошибка при чтении 'application.yml'", e);
             }
 
             String environmentName = System.getProperty("environment", "test");
             if (!environmentConfigByName.containsKey(environmentName)) {
                 String message = String.format(
-                        "Failed to read '%s' configuration, please application.yml",
+                        "Ошибка при чтении конфигурации '%s', проверьте application.yml",
                         environmentName);
                 throw new IllegalStateException(message);
             }
